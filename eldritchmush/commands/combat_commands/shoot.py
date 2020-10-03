@@ -32,7 +32,7 @@ class CmdShoot(Command):
         # Check for correct command
         # Target handling
         if not self.args:
-            self.msg("|430Usage: strike <target>|n")
+            self.msg("|430Usage: shoot <target>|n")
             return
         elif self.args == self.caller:
             self.msg("|400You can't do that.|n")
@@ -47,15 +47,21 @@ class CmdShoot(Command):
             combatant.message("|400You are all out of arrows.|n")
             return
 
-
-        victim = combatant.getVictim(self.target)
+        # Check for and error handle designated target
+        target = self.caller.search(self.target)
 
         # Pass all checks now execute command.
         # Use parsed args in combat loop. Handles turn order in combat.
-        if not victim:
+        if not target:
             combatant.message("|430Please designate an appropriate target.|n")
             return
 
+        if not target.db.bleed_points:
+            combatant.message(f"{victim.name} |400is dead. You only further mutiliate their body.|n")
+            combatant.broadcast(f"{combatant.name} |025further mutilates the corpse of|n {victim.name}|025.|n")
+            return
+
+        victim = combatant.getVictim(self.target)
         loop = CombatLoop(combatant.caller, combatant.target)
         loop.resolveCommand()
 
@@ -63,7 +69,7 @@ class CmdShoot(Command):
             if combatant.inventory.hasBow("|430You need to equip a bow before you are able to shoot, using the command equip <bow name>.|n"):
                 if victim.isAlive:
                     bow_penalty = 2
-                    bow_damage = 2
+                    bow_damage = 1
 
                     attack_result = combatant.rollAttack(bow_penalty)
                     shot_location = combatant.determineHitLocation(victim)
@@ -73,12 +79,12 @@ class CmdShoot(Command):
 
                         if not victim.blocksWithShield(shot_location):
                             # Get damage result and damage for weapon type
-                            victim.takeDamage(combatant, combatant.getDamage(), shot_location)
-                            victim.reportAv()
-                            combatant.broadcast(f"|025{combatant.name} lets loose an arrow|n (|020{attack_result}|n)|025 straight for {victim.name}'s {shot_location} and hits|n (|400{victim.av}|n), |025dealing|n (|430{bow_damage}|n) |025damage!|n")
+                            skip_av_damage=True
+                            victim.takeDamage(combatant, combatant.getDamage(), shot_location, skip_av_damage)
+                            combatant.broadcast(f"{combatant.name} |025lets loose an arrow|n (|020{attack_result}|n)|025 straight for|n {victim.name}|025's {shot_location} and hits|n (|400{victim.av}|n), |025dealing|n (|430{bow_damage}|n) |025damage!|n")
                         else:
                             combatant.broadcast(
-                                f"|025{combatant.name} lets loose an arrow|n (|020{attack_result}|n)|025 straight for {victim.name}'s {shot_location} and hits|n (|400{victim.av}|n), but {victim.name} is able to raise their shield to block!|n")
+                                f"{combatant.name} |025lets loose an arrow|n (|020{attack_result}|n)|025 straight for|n {victim.name}'s |025{shot_location} and hits|n (|400{victim.av}|n)|025, but|n {victim.name} |025is able to raise their shield to block!|n")
 
                         combatant.message(f"|430You have {combatant.inventory.arrowQuantity} arrows left.")
                         # Clean up
@@ -87,5 +93,5 @@ class CmdShoot(Command):
                         loop.cleanup()
 
                 else:
-                    combatant.message(f"|400{victim.name} is dead. You only further mutiliate their body.|n")
-                    combatant.broadcast(f"|025{combatant.name} further mutilates the corpse of {victim.name}.|n")
+                    combatant.message(f"{victim.name} |400is dead. You only further mutiliate their body.|n")
+                    combatant.broadcast(f"{combatant.name} |025further mutilates the corpse of|n {victim.name}|025.|n")

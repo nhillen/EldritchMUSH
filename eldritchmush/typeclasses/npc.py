@@ -253,6 +253,8 @@ class GreenMeleeSoldierTwoHanded(GreenMeleeSoldierOneHanded):
         self.db.body_slot = []
         self.db.is_aggressive = False
         self.db.skip_turn = False
+        self.db.melee_weapons = 1
+        self.db.armor_proficiency = 1
 
         # Entries for following
         self.db.isLeading = False
@@ -413,6 +415,8 @@ class GreenSoldierBow(GreenMeleeSoldierOneHanded):
         self.db.arrow_slot = []
         self.db.is_aggressive = False
         self.db.skip_turn = False
+        self.db.archer = 1
+        self.db.armor_proficiency = 1
 
         # Entries for following
         self.db.isLeading = False
@@ -488,11 +492,8 @@ class GreenSoldierBow(GreenMeleeSoldierOneHanded):
         # helper = Helper(self)
         # combat_bank = helper.activeMartialCounter(self)
         amSkills = {
-        "stun": self.db.stun,
         "disarm": self.db.disarm,
-        "sunder": self.db.sunder,
-        "stagger": self.db.stagger,
-        "cleave": self.db.cleave
+        "stagger": self.db.stagger
         }
 
         # Generate an array of possible commands.
@@ -568,7 +569,7 @@ class BlueMeleeSoldierOneHanded(Npc):
         self.db.weapon_level = 0
         self.db.shield_value = 0
         self.db.wyldinghand = 0
-        self.db.shield = 0
+        self.db.shields = 1
         self.db.bow = 0
         self.db.activemartialskill = 1
         self.db.combat_turn = 1
@@ -578,6 +579,8 @@ class BlueMeleeSoldierOneHanded(Npc):
         self.db.body_slot = []
         self.db.is_aggressive = False
         self.db.skip_turn = False
+        self.db.melee_weapons = 1
+        self.db.armor_proficiency = 1
 
         # Entries for following
         self.db.isLeading = False
@@ -667,6 +670,7 @@ class BlueMeleeSoldierOneHanded(Npc):
         flat_ams_commands.append("strike")
         # Choose random command
         chosen_command = random.choice(flat_ams_commands)
+        self.location.msg_contents(f"My chosen command is: {chosen_command}")
         # Catch exceptions to running active martial skills - weakness condition
         # Make sure npc is equipped:
 
@@ -688,6 +692,7 @@ class BlueMeleeSoldierOneHanded(Npc):
                 chosen_command = 'strike' if self.db.weakness else chosen_command
                 # Establish command string
                 action_string = chosen_command + ' ' + target.key
+                self.location.msg_contents(f"My chosen action string is: {action_string}")
 
         return action_string
 
@@ -743,6 +748,8 @@ class BlueMeleeSoldierTwoHanded(Npc):
         self.db.body_slot = []
         self.db.is_aggressive = False
         self.db.skip_turn = False
+        self.db.melee_weapons = 1
+        self.db.armor_proficiency = 1
 
         # Entries for following
         self.db.isLeading = False
@@ -848,7 +855,7 @@ class BlueMeleeSoldierTwoHanded(Npc):
                 chosen_command = 'strike' if self.db.weakness else chosen_command
                 # Establish command string
                 action_string = chosen_command + ' ' + target.key
-
+        self.location.msg_contents(f"My chosen action string is: {action_string}")
         return action_string
 
 class BlueSoldierBow(Npc):
@@ -884,11 +891,11 @@ class BlueSoldierBow(Npc):
 
         # Entries for combat
         self.db.resist = 0
-        self.db.disarm = 0
+        self.db.disarm = 1
         self.db.cleave = 0
         self.db.sunder = 0
         self.db.stun = 0
-        self.db.stagger = 0
+        self.db.stagger = 1
         self.db.weapon_level = 0
         self.db.shield_value = 0
         self.db.wyldinghand = 0
@@ -900,8 +907,12 @@ class BlueSoldierBow(Npc):
         self.db.left_slot = []
         self.db.right_slot = []
         self.db.body_slot = []
+        self.db.arrow_slot = []
         self.db.is_aggressive = False
         self.db.skip_turn = False
+        self.db.archer = 1
+        self.db.armor_proficiency = 1
+        self.db.sniper = 1
 
         # Entries for following
         self.db.isLeading = False
@@ -929,18 +940,23 @@ class BlueSoldierBow(Npc):
     def make_equipment(self):
         prototype = prototypes.search_prototype("bow", require_single=True)
         armor_prototype = prototypes.search_prototype("hardened_iron_coat_of_plates", require_single=True)
+        arrow_prototype = prototypes.search_prototype("arrows", require_single=True)
         # Get prototype data
         bow_data = prototype[0]
         armor_data = armor_prototype[0]
+        arrow_data = arrow_prototype[0]
         # Spawn item using data
         weapon_item = spawn(bow_data)
         armor_item = spawn(armor_data)
+        arrow_item = spawn(arrow_data)
         # Move item to caller's inventory
         weapon_item[0].move_to(self, quiet=True)
         armor_item[0].move_to(self, quiet=True)
+        arrow_item[0].move_to(self, quiet=True)
         # Equip items
         self.execute_cmd('equip bow')
         self.execute_cmd('equip hardened iron coat of plates')
+        self.execute_cmd('equip arrows')
 
 
     def at_char_entered(self, character):
@@ -972,11 +988,8 @@ class BlueSoldierBow(Npc):
         # helper = Helper(self)
         # combat_bank = helper.activeMartialCounter(self)
         amSkills = {
-        "stun": self.db.stun,
         "disarm": self.db.disarm,
-        "sunder": self.db.sunder,
-        "stagger": self.db.stagger,
-        "cleave": self.db.cleave
+        "stagger": self.db.stagger
         }
 
         # Generate an array of possible commands.
@@ -1007,7 +1020,7 @@ class BlueSoldierBow(Npc):
                 chosen_command = 'shoot' if self.db.weakness else chosen_command
                 # Establish command string
                 action_string = chosen_command + ' ' + target.key
-
+        self.location.msg_contents(f"My chosen action string is: {action_string}")
         return action_string
 
 

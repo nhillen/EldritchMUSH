@@ -197,6 +197,9 @@ class Command(BaseCommand):
 #                 self.character = self.caller.get_puppet(self.session)
 #             else:
 #                 self.character = None
+"""
+Utility commands
+"""
 class CmdGet(Command):
     """
     pick up something
@@ -315,7 +318,6 @@ class CmdGet(Command):
                 target.at_get(self.caller)
             else:
                 return
-
 
 class CmdGive(Command):
     """
@@ -437,8 +439,6 @@ class CmdGive(Command):
             # Call the object script's at_give() method.
             to_give.at_give(self.caller, target)
 
-
-
 class CmdEquip(Command):
     """Equip a weapon or shield
 
@@ -466,19 +466,20 @@ class CmdEquip(Command):
             return
 
         item = self.caller.search(self.item, location=self.caller)
-        item_lower = item.key.lower().replace(" ", "_")
-        prototype = prototypes.search_prototype(item_lower, require_single=True)
-
-        # Get search response
-        prototype_data = prototype[0]
-
-        # Get item attributes and who makes it.
-        item_data = prototype_data['attrs']
-
-        indexOfRequired = next((i for i, v in enumerate(item_data) if v[0] == "required_skill"), None)
 
         # Check if the item is of armor type
         if item:
+            item_lower = item.key.lower().replace(" ", "_")
+            prototype = prototypes.search_prototype(item_lower, require_single=True)
+
+            # Get search response
+            prototype_data = prototype[0]
+
+            # Get item attributes and who makes it.
+            item_data = prototype_data['attrs']
+
+            indexOfRequired = next((i for i, v in enumerate(item_data) if v[0] == "required_skill"), None)
+
             # Do some skill checks
             if indexOfRequired:
                 required_skill = item_data[indexOfRequired][1]
@@ -603,46 +604,24 @@ class CmdEquip(Command):
                             return
                     # Check to see if right hand is empty.
                     elif not self.right_slot and (item.db.is_shield or item.db.damage):
-                        self.right_slot.append(item)
                         self.caller.location.msg_contents(f"|025{self.caller.key} equips their {item.key}.|n")
 
                         if item.db.is_shield:
-                            # Get vals for armor value calc
-                            armor_value = self.caller.db.armor
-                            indomitable = self.caller.db.indomitable
-                            tough = self.caller.db.tough
-                            armor_specialist = 1 if self.caller.db.armor_specialist == True else 0
-                            # Add them up and set the curent armor value in the database
-                            currentArmorValue = armor_value + tough + armor_specialist
-                            self.caller.db.av = currentArmorValue
-
-                            # Return armor value to console.
-                            self.caller.msg(f"|430Your current Armor Value is {currentArmorValue}:\nArmor: {armor_value}\nTough: {tough}\nArmor Specialist: {armor_specialist}\nIndomitable: {indomitable}|n")
-
+                            self.right_slot.append(item)
                         else:
                             # Add weapon bonus
+                            self.right_slot.append(item)
                             weapon_bonus = h.weaponValue(item.db.level)
                             self.caller.db.weapon_level = weapon_bonus
 
                     elif not self.left_slot and (item.db.is_shield or item.db.damage):
-                        self.left_slot.append(item)
                         self.caller.location.msg_contents(f"|025{self.caller.key} equips their {item.key}.|n")
 
                         if item.db.is_shield:
-
-                            # Get vals for armor value calc
-                            armor_value = self.caller.db.armor
-                            indomitable = self.caller.db.indomitable
-                            tough = self.caller.db.tough
-                            armor_specialist = 1 if self.caller.db.armor_specialist == True else 0
-                            # Add them up and set the curent armor value in the database
-                            currentArmorValue = armor_value + tough + armor_specialist
-                            self.caller.db.av = currentArmorValue
-                            # Return armor value to console.
-                            self.caller.msg(f"|430Your current Armor Value is {currentArmorValue}:\nArmor: {armor_value}\nTough: {tough}\nArmor Specialist: {armor_specialist}\nIndomitable: {indomitable}|n")
-
+                            self.left_slot.append(item)
                         else:
                             # Add weapon bonus
+                            self.left_slot.append(item)
                             weapon_bonus = h.weaponValue(item.db.level)
                             self.caller.db.weapon_level = weapon_bonus
 
@@ -655,7 +634,6 @@ class CmdEquip(Command):
                 self.msg("|400You can't equip the same weapon twice.|n")
         else:
             self.caller.msg(f"Please be more specific.")
-
 
 class CmdUnequip(Command):
     """Equip a weapon or shield
@@ -757,7 +735,9 @@ class CmdUnequip(Command):
         else:
             self.caller.msg(f"Please be more specific.")
 
-
+"""
+Chargen Skill Setters
+"""
 class SetBlacksmith(Command):
     """Set the blacksmith level of a character
 
@@ -786,7 +766,6 @@ class SetBlacksmith(Command):
         # at this point the argument is tested as valid. Let's set it.
         self.caller.db.blacksmith = blacksmith
         self.caller.msg("|430Your Blacksmith level was set to %i.|n" % blacksmith)
-
 
 class SetArtificer(Command):
     """Set the artificer level of a character
@@ -903,7 +882,6 @@ class SetAlchemist(Command):
         self.caller.db.alchemist = alchemist
         self.caller.msg("|430Your Alchemist level was set to %i.|n" % alchemist)
 
-
 class SetTracking(Command):
     """Set the tracking of a character
 
@@ -933,8 +911,6 @@ class SetTracking(Command):
         # at this point the argument is tested as valid. Let's set it.
         self.caller.db.tracking = tracking
         self.caller.msg("|430Your Tracking was set to %i.|n" % tracking)
-
-
 
 class SetPerception(Command):
     """Set the perception of a character
@@ -966,7 +942,6 @@ class SetPerception(Command):
         self.caller.db.perception = perception
         self.caller.msg("|430Your Perception was set to %i.|n" % perception)
 
-
 class SetMasterOfArms(Command):
     """Set the tracking of a character
 
@@ -995,7 +970,6 @@ class SetMasterOfArms(Command):
         # at this point the argument is tested as valid. Let's set it.
         self.caller.db.master_of_arms = master_of_arms
         self.caller.msg("|430Your Master of Arms was set to %i.|n" % master_of_arms)
-
 
 class SetTough(Command):
     """Set the tough of a character
@@ -1040,47 +1014,6 @@ class SetTough(Command):
 
             # Return armor value to console.
             self.caller.msg(f"|430Your current Armor Value is {currentArmorValue}:\nArmor: {armor}\nTough: {tough}\nArmor Specialist: {armor_specialist}|n")
-
-
-class SetBody(Command):
-    """Set the body of a character
-
-    Usage: setbody <value>
-
-    This sets the body of the current character. This is available to all characters.
-    """
-
-    key = "setbody"
-    help_category = "mush"
-
-    def func(self):
-        "This performs the actual command"
-        errmsg = "|430Usage: setbody <value>|n"
-        if not self.args:
-            self.caller.msg(errmsg)
-            return
-        try:
-            body = int(self.args)
-        except ValueError:
-            self.caller.msg(errmsg)
-            return
-
-        # Error handling to keep from going below -6.
-        if body < -6:
-            self.caller.msg("|430Usage: setbody <value>|n\n|400You may not set a value lower than -6.|n")
-        elif body > 3:
-            self.caller.msg("|430Usage: setbody <value>|n\n|400You may not set a value higher than 3.|n")
-        else:
-            current_body = self.caller.db.body
-
-            # at this point the argument is tested as valid. Let's set it.
-            self.caller.db.body = body
-            self.caller.msg("|430Your Body was set to %i.|n" % body)
-            if current_body > body:
-                damage = current_body - body
-                self.caller.location.msg_contents(f"|400{self.caller.key} takes {damage} damage to their body.|n")
-            if body == 0:
-                self.caller.location.msg_contents(f"|400{self.caller.key} is now bleeding profusely from many wounds.|n")
 
 class SetArmorSpecialist(Command):
     """Set the armor specialist property of a character
@@ -1183,7 +1116,6 @@ class SetResilience(Command):
         self.caller.db.bleed_points += resilience
         self.caller.msg("Your Resilience level was set to %i." % resilience)
 
-
 class SetResist(Command):
     """Set the resist level of a character
 
@@ -1215,7 +1147,6 @@ class SetResist(Command):
             self.caller.db.total_resist = resist
             self.caller.msg("Your resist level was set to %i." % resist)
 
-
 class SetDisarm(Command):
     """Set the disarm level of a character
 
@@ -1246,7 +1177,6 @@ class SetDisarm(Command):
         self.caller.db.disarm = disarm
         self.caller.db.total_disarm = disarm
         self.caller.msg("Your disarm level was set to %i." % disarm)
-
 
 class SetCleave(Command):
     """Set the cleave level of a character
@@ -1508,7 +1438,6 @@ class SetStun(Command):
             self.caller.db.total_stun = stun
             self.caller.msg("Your stun level was set to %i." % stun)
 
-
 class SetSunder(Command):
     """Set the stun level of a character
 
@@ -1539,7 +1468,6 @@ class SetSunder(Command):
             self.caller.db.sunder = sunder
             self.caller.db.total_sunder = sunder
             self.caller.msg("Your sunder level was set to %i." % sunder)
-
 
 class SetStagger(Command):
     """Set the stagger level of a character
@@ -1575,7 +1503,6 @@ class SetStagger(Command):
 """
 General commands
 """
-
 class CmdPerception(default_cmds.MuxCommand):
     """
     sets a detail on a room
@@ -1714,7 +1641,6 @@ class CmdTracking(default_cmds.MuxCommand):
             else:
                 self.caller.msg("|400Search didn't return anything.|n")
 
-
 class CmdSmile(Command):
     """
     A smile command
@@ -1753,7 +1679,6 @@ class CmdSmile(Command):
             string = f"{caller.key} smiles at {target.key}"
 
         caller.location.msg_contents(string)
-
 
 """
 Carnival commands
@@ -1800,7 +1725,6 @@ class CmdPull(Command):
             fortune = random.choice(fortuneStrings)
             self.caller.msg(fortune)
 
-
 class CmdThrow(Command):
     """
     Usage: throw dagger
@@ -1844,7 +1768,6 @@ class CmdThrow(Command):
             else:
                 self.caller.location.msg_contents(f"|230{self.caller.key} picks up a dagger from the table, takes aim, and hurls the dagger downfield wide of the target.|n")
 
-
 class CmdStart(Command):
     """
     Usage: start
@@ -1863,8 +1786,6 @@ class CmdStart(Command):
         self.caller.msg(f"|/|430Giving up so soon, {self.caller.name}? You were doing so well. Be sure to try again soon.|n|/|230You notice a door open up where before there was none. Stepping through it, you find yourself back in the foyer of the strange maze.|n|/")
         maze_foyer = self.caller.search('#449')
         self.caller.move_to(maze_foyer)
-
-
 
 class CmdPushButton(Command):
     """
@@ -1930,7 +1851,6 @@ class CmdPushButton(Command):
         # Call spawner
         ticket = spawn({"key": "A Small Paper Ticket", "desc": "|yThis is a small, rectangular slip of stained paper. On one side is the faded black and white stamp of a " + cardType + ".", "location": self.caller.location, "aliases": ["ticket", "small ticket"]})
 
-
 class CmdSwing(Command):
     """
     Usage: swing hammer
@@ -1981,10 +1901,8 @@ class CmdSwing(Command):
             else:
                 self.caller.location.msg_contents(f"|/|230{self.caller.key} picks up the hammer, hoists it over their head and brings it down upon the heavy wooden board. The metal pin climbs up towards the rusty bell but falls short, well before reaching the top.|n|/")
 
-
 """
 Set Skill Related Attributes
-
 """
 class SetStabilize(Command):
     """Set the stun level of a character
@@ -2017,7 +1935,6 @@ class SetStabilize(Command):
             self.caller.db.stabilize = stabilize
             self.caller.msg(f"Your stabilize level was set to {stabilize}")
 
-
 class SetMedicine(Command):
     """Set the medicine level of a character
 
@@ -2048,7 +1965,6 @@ class SetMedicine(Command):
             # at this point the argument is tested as valid. Let's set it.
             self.caller.db.medicine = medicine
             self.caller.msg(f"Your medicine level was set to {medicine}")
-
 
 class SetBattleFieldMedicine(Command):
     """Set the battlefieldmedicine level of a character
@@ -2084,7 +2000,6 @@ class SetBattleFieldMedicine(Command):
         else:
             self.caller.msg("|400You have deactivated the battlefield medicine ability.|n")
 
-
 class SetChirurgeon(Command):
     """Activate the chirurgery ability.
 
@@ -2119,8 +2034,6 @@ class SetChirurgeon(Command):
         else:
             self.caller.msg("|400You have deactivated the chirurgeon ability.|n")
 
-
-
 """
 Knight skills
 """
@@ -2154,7 +2067,6 @@ class SetBattleFieldCommander(Command):
             # at this point the argument is tested as valid. Let's set it.
             self.caller.db.battlefieldcommander = battlefieldcommander
             self.caller.msg(f"Your battlefield commander was set to {battlefieldcommander}")
-
 
 class SetRally(Command):
     """Set the rally level of a knight character
@@ -2215,8 +2127,6 @@ class SetIndomitable(Command):
             # at this point the argument is tested as valid. Let's set it.
             self.caller.db.indomitable = indomitable
             self.caller.msg(f"Your indomitable level was set to {indomitable}")
-
-
 
 """
 Effects status commands
@@ -2430,22 +2340,57 @@ class CharStatus(Command):
     def func(self):
         # target = self.caller.search(self.target)
 
+        # Make item objects for printing
+        # Right and left hand objects
+        right_item = self.caller.db.right_slot[0] if self.caller.db.right_slot else None
+        right_item_mv = right_item.db.material_value if right_item else "Empty"
+        left_item = self.caller.db.left_slot[0] if self.caller.db.left_slot else None
+        left_item_mv = left_item.db.material_value if left_item else "Empty"
+
+        # Combat turns
+        # Callers turn
+        location_combat_loop = self.caller.location.db.combat_loop
+        in_loop = True if self.caller in location_combat_loop else False
+        combat_turn = (location_combat_loop.index(self.caller) + 1) if in_loop else "Not in combat"
+        # Turn order
+        current_turn = [combatant for combatant in location_combat_loop if combatant.db.combat_turn and in_loop]
+        current_turn_value = current_turn[0] if current_turn else "No active combat"
+
+
         if self.target == "self" or self.target == "me" or not self.target:
             status_table = evtable.EvTable("|430Status|n", "|430Value|n",
                 table = [
                     [
                         "Armor",
+                        "Armor Value",
                         "Armor Specialist",
                         "Tough",
                         "Body",
-                        "Armor Value"
+                        "Cleave",
+                        "Sunder",
+                        "Stagger",
+                        "Disarm",
+                        "Resist",
+                        "Right Item Durability",
+                        "Left Item Durability",
+                        "Combat Turn",
+                        "Current Turn"
                     ],
                     [
                         self.caller.db.armor,
+                        self.caller.db.av,
                         self.caller.db.armor_specialist,
                         self.caller.db.tough,
                         self.caller.db.body,
-                        self.caller.db.av
+                        self.caller.db.cleave,
+                        self.caller.db.sunder,
+                        self.caller.db.stagger,
+                        self.caller.db.disarm,
+                        self.caller.db.resist,
+                        right_item_mv,
+                        left_item_mv,
+                        combat_turn,
+                        current_turn_value
                     ]
                 ],
                 border = "cells")
@@ -2518,7 +2463,6 @@ class CmdDiagnose(Command):
                     message += "|400" + target.key + " is dead."
 
                 caller.msg(message)
-
 
 """
 General gameplay commands
@@ -2689,7 +2633,6 @@ class CmdFollow(Command):
                         caller.db.isFollowing = True
                         caller.msg("|430You are now following " + target.key + "|n")
                         target.msg("|430"+ caller.key + " is now following you.|n")
-
 
 class CmdUnfollow(Command):
     """

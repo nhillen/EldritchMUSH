@@ -38,14 +38,22 @@ class CmdStun(Command):
             return
 
         # Get target if there is one
+        # Check for and error handle designated target
         target = self.caller.search(self.target)
 
+        # Pass all checks now execute command.
+        # Use parsed args in combat loop. Handles turn order in combat.
         if not target:
             combatant.message("|430Please designate an appropriate target.|n")
             return
 
-        victim = Combatant(target)
-        loop = CombatLoop(combatant.caller, target)
+        if not target.db.bleed_points:
+            combatant.message(f"{victim.name} |400is dead. You only further mutiliate their body.|n")
+            combatant.broadcast(f"{combatant.name} |025further mutilates the corpse of|n {victim.name}|025.|n")
+            return
+
+        victim = combatant.getVictim(self.target)
+        loop = CombatLoop(combatant.caller, combatant.target)
         loop.resolveCommand()
 
         #TODO: Currently Disarm does Damage and Stun doesnt.  Is that intended?
@@ -59,12 +67,12 @@ class CmdStun(Command):
                             if attack_result >= victim.av:
                                 victim.stun()
                                 combatant.decreaseStuns(1)
-                                combatant.broadcast(f"|025{combatant.name} lines up behind {victim.name} and strikes|n (|025{attack_result}|n)|025, stunning them momentarily|n (|400{victim.av}|n)|025.|n")
+                                combatant.broadcast(f"{combatant.name} |025lines up behind|n {victim.name} |025and strikes|n (|020{attack_result}|n)|025, stunning them momentarily|n (|400{victim.av}|n)|025.|n")
                             else:
-                                combatant.broadcast(f"|025{combatant.name} (|020{attack_result}|n) |025lines up behind {victim.name}|n (|400{victim.av}|n)|025, but misses their opportunity to stun them.|n")
+                                combatant.broadcast(f"{combatant.name} (|020{attack_result}|n) |025lines up behind|n {victim.name} (|400{victim.av}|n)|025, but misses their opportunity to stun them.|n")
                         else:
-                            combatant.message(f"|400{victim.name} is dead. You only further mutilate their body.|n")
-                            combatant.broadcast(f"|025{combatant.name} further mutilates the corpse of {victim.name}.|n")
+                            combatant.message(f"{victim.name} |400is dead. You only further mutilate their body.|n")
+                            combatant.broadcast(f"{combatant.name} |025further mutilates the corpse of|n {victim.name}.|n")
 
                         # Clean up
                         # Set self.caller's combat_turn to 0. Can no longer use combat commands.
